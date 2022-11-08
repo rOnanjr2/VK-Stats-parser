@@ -15,8 +15,6 @@ let rangeToGet = (arr) => {
 			break;
 	}
 }
-
-
 // "Старки!A2:D100";
 
 async function getGoogleSheetData(query, functionToCall, arr) {
@@ -145,17 +143,19 @@ const setInt = (arr) => {
 	},350);
 }
 
-const copyNames = () => {
-	let str = '';
-	factionNameUserData.forEach(elem => {
-		str += elem.name + '\n';
-	});
-	navigator.clipboard.writeText(str);
-}
+// const copyNames = () => {
+// 	let str = '';
+// 	factionNameUserData.forEach(elem => {
+// 		str += elem.name + '\n';
+// 	});
+// 	navigator.clipboard.writeText(str);
+// }
 
-const copyValues = () => {
+const copyValues = (arr) => {
+	const array = arraySwith(arr);
+	console.log(array);
 	let str = '';
-	factionNameUserData.forEach(elem => {
+	array.forEach(elem => {
 		if (elem.amount === "inactive") {
 			str += '\n';
 		}else str += elem.amount + '\n';
@@ -165,11 +165,11 @@ const copyValues = () => {
 
 document.querySelector("#requestStark").onclick = () => {setInt('stark')};
 document.querySelector("#requestDbStark").onclick = () => {getGoogleSheetData(rangeToGet('stark'), doSomethingWithData, ('stark'))};
-document.querySelector("#cpValStark").onclick = () => {copyValues()};
+document.querySelector("#cpValStark").onclick = () => {copyValues('stark')};
 
 document.querySelector("#requestArryn").onclick = () => {setInt('arryn')};
 document.querySelector("#requestDbArryn").onclick = () => {getGoogleSheetData(rangeToGet('arryn'), doSomethingWithData, ('arryn'))};
-// document.querySelector("#cpValStark").onclick = () => {copyValues()};
+document.querySelector("#cpValArryn").onclick = () => {copyValues('arryn')};
 
 
 // document.querySelector("#table").onclick = () => {document.querySelector("#mydiv").innerHTML = tableMarkupFromObjectArray(factionNameUserData)};
