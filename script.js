@@ -1,11 +1,25 @@
 const ovner = "-208251009";
 const getCommentsMethod = "https://api.vk.com/method/photos.getComments?access_token="
-let pointer = 0;
 let url1;
 let factionNameUserData = [];
-let rangeToGet = "Старки!A2:D100";
+let arrStark = [];
+let arrArryn = [];
 
-async function getGoogleSheetData(query, functionToCall) {
+let rangeToGet = (arr) => {
+	switch (arr) {
+		case "stark":
+			return "Старки!A2:D100";
+			break;
+		case "arryn":
+			return "Аррены!A2:D100";
+			break;
+	}
+}
+
+
+// "Старки!A2:D100";
+
+async function getGoogleSheetData(query, functionToCall, arr) {
 	const apiKey = "AIzaSyBO4Dr_pF5AWGbs_WloloNOnoqYvmFBVBQ";
 	const sheet = "1J0yQJjQdYMS8wWd7icDBFqsVJsNBgqxsLCxQM_NGn5E";
 	let result = await fetch(
@@ -14,21 +28,23 @@ async function getGoogleSheetData(query, functionToCall) {
 	.then(async (response) => {
 		return await response.json();
 	})
-	.then((returnedData) => functionToCall(returnedData))
+	.then((returnedData) => functionToCall(returnedData, arr))
 
 	.catch((err) => console.log("fetch failed ", err));
 }
 
-function doSomethingWithData(data) {
+function doSomethingWithData(data, arr) {
+	let array = arraySwith(arr)
+	console.log(array);
 	data.values.forEach((row) => {
 		if (row[1] === "TRUE") {
 			row[3] = "inactive";
 			row[2] = "inactive";
 		}
-		factionNameUserData.push({ name: row[0], id: row[2], card: row[3] });
+		array.push({ name: row[0], id: row[2], card: row[3] });
 	});
-	document.querySelector("#mydiv").innerHTML = tableMarkupFromObjectArray(factionNameUserData);
-	console.log(factionNameUserData);//заменить на вызов функции работающей с этими данными
+	document.querySelector("#mydiv" + arr).innerHTML = tableMarkupFromObjectArray(array);
+	console.log(array);//заменить на вызов функции работающей с этими данными
 }
 // тут имена и айди вместе
 
@@ -44,10 +60,10 @@ function timeConverter(UNIX_timestamp){
 	return time + a.toLocaleTimeString("it-IT");
 }
 
-const requestVK = (card, index) => {
+const requestVK = (card, index, array) => {
 	if (card === "inactive") {
-		factionNameUserData[index].amount = "inactive";
-		factionNameUserData[index].date = "inactive";
+		array[index].amount = "inactive";
+		array[index].date = "inactive";
 	}else {
 		let url = `${getCommentsMethod}${token}&owner_id=${ovner}&photo_id=${card}&sort=desc&count=2&v=5.131`;
 		url1 = url;
@@ -57,8 +73,8 @@ const requestVK = (card, index) => {
 			let digitPtrEnd;
 			const str = data.response.items[0].text.split('\n')[2];
 			if (!str) {
-				factionNameUserData[index].amount = 'ERROR';
-				factionNameUserData[index].date = timeConverter(data.response.items[0].date);
+				array[index].amount = 'ERROR';
+				array[index].date = timeConverter(data.response.items[0].date);
 			}else {
 				for (var i = 0; i < str.length; i++) {
 					if (parseInt(str.substring(i, i + 1)) || parseInt(str.substring(i, i + 1)) === 0) {
@@ -71,10 +87,10 @@ const requestVK = (card, index) => {
 				console.log(str);
 				let result = parseInt(str.substring(digitPtrStart, digitPtrEnd + 1));
 				console.log(result);
-				factionNameUserData[index].amount = result;
-				factionNameUserData[index].date = timeConverter(data.response.items[0].date);
+				array[index].amount = result;
+				array[index].date = timeConverter(data.response.items[0].date);
 			}
-			
+
 		});
 	}
 }
@@ -104,15 +120,28 @@ function tableMarkupFromObjectArray(obj) {
 	return tablemarkup
 }
 
-const setInt = () => {
+const arraySwith = (arr) => {
+	switch	(arr) {
+		case "stark":
+			return arrStark;
+			break;
+		case "arryn":
+			return arrArryn;
+			break;
+	}
+}
+
+const setInt = (arr) => {
+	let pointer = 0;
+	const array = arraySwith(arr);
 	intervalId = setInterval(() => {
-		if (pointer < factionNameUserData.length) {
-			requestVK(factionNameUserData[pointer].card, pointer);
+		if (pointer < array.length) {
+			requestVK(array[pointer].card, pointer, array);
 			pointer++;
 		}else {
 			clearInterval(intervalId);
 		}
-		document.querySelector("#mydiv").innerHTML = tableMarkupFromObjectArray(factionNameUserData)
+		document.querySelector("#mydiv" + arr).innerHTML = tableMarkupFromObjectArray(array)
 	},350);
 }
 
@@ -134,12 +163,14 @@ const copyValues = () => {
 	navigator.clipboard.writeText(str);
 }
 
-document.querySelector("#request").onclick = () => {setInt()};
-document.querySelector("#requestDb").onclick = () => {getGoogleSheetData(rangeToGet, doSomethingWithData);};
-document.querySelector("#table").onclick = () => {document.querySelector("#mydiv").innerHTML = tableMarkupFromObjectArray(factionNameUserData)};
-document.querySelector("#cpVal").onclick = () => {copyValues()};
-document.querySelector("#cpNames").onclick = () => {copyNames()};
+document.querySelector("#requestStark").onclick = () => {setInt('stark')};
+document.querySelector("#requestDbStark").onclick = () => {getGoogleSheetData(rangeToGet('stark'), doSomethingWithData, ('stark'))};
+document.querySelector("#cpValStark").onclick = () => {copyValues()};
+
+document.querySelector("#requestArryn").onclick = () => {setInt('arryn')};
+document.querySelector("#requestDbArryn").onclick = () => {getGoogleSheetData(rangeToGet('arryn'), doSomethingWithData, ('arryn'))};
+// document.querySelector("#cpValStark").onclick = () => {copyValues()};
 
 
-
+// document.querySelector("#table").onclick = () => {document.querySelector("#mydiv").innerHTML = tableMarkupFromObjectArray(factionNameUserData)};
 // "https://oauth.vk.com/authorize?client_id=51469310&display=page&scope=photos,wall,offline&response_type=token&v=5.131&state=123456" - Получить токен!!!
