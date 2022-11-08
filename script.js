@@ -3,6 +3,7 @@ const getCommentsMethod = "https://api.vk.com/method/photos.getComments?access_t
 let pointer = 0;
 let url1;
 let factionNameUserData = [];
+let rangeToGet = "Старки!A2:D100";
 
 async function getGoogleSheetData(query, functionToCall) {
 	const apiKey = "AIzaSyBO4Dr_pF5AWGbs_WloloNOnoqYvmFBVBQ";
@@ -19,8 +20,6 @@ async function getGoogleSheetData(query, functionToCall) {
 }
 
 function doSomethingWithData(data) {
-	// console.dir(data.values);
-	// console.dir(data.values);
 	data.values.forEach((row) => {
 		if (row[1] === "TRUE") {
 			row[3] = "inactive";
@@ -32,7 +31,7 @@ function doSomethingWithData(data) {
 	console.log(factionNameUserData);//заменить на вызов функции работающей с этими данными
 }
 // тут имена и айди вместе
-let rangeToGet = "Старки!A2:D100";
+
 // getGoogleSheetData(rangeToGet, doSomethingWithData);
 
 function timeConverter(UNIX_timestamp){
@@ -51,32 +50,32 @@ const requestVK = (card, index) => {
 		factionNameUserData[index].date = "inactive";
 	}else {
 		let url = `${getCommentsMethod}${token}&owner_id=${ovner}&photo_id=${card}&sort=desc&count=2&v=5.131`;
-	url1 = url;
-	$.ajax({url: url, type: 'GET', dataType: 'jsonp'})
-	.done(function(data) {
-		let digitPtrStart;
-		let digitPtrEnd;
-		const str = data.response.items[0].text.split('\n')[2];
-		if (!str) {
-			factionNameUserData[index].amount = 'ERROR';
-			factionNameUserData[index].date = timeConverter(data.response.items[0].date);
-		}else {
-			for (var i = 0; i < str.length; i++) {
-			if (parseInt(str.substring(i, i + 1)) || parseInt(str.substring(i, i + 1)) === 0) {
-				if (!digitPtrStart) digitPtrStart = i;
-				digitPtrEnd = i;
+		url1 = url;
+		$.ajax({url: url, type: 'GET', dataType: 'jsonp'})
+		.done(function(data) {
+			let digitPtrStart;
+			let digitPtrEnd;
+			const str = data.response.items[0].text.split('\n')[2];
+			if (!str) {
+				factionNameUserData[index].amount = 'ERROR';
+				factionNameUserData[index].date = timeConverter(data.response.items[0].date);
+			}else {
+				for (var i = 0; i < str.length; i++) {
+					if (parseInt(str.substring(i, i + 1)) || parseInt(str.substring(i, i + 1)) === 0) {
+						if (!digitPtrStart) digitPtrStart = i;
+						digitPtrEnd = i;
+					}
+					if (parseInt(str.substring(i, i + 1)) === NaN && digitPtrStart) break;
+				}
+				console.log(card, index);
+				console.log(str);
+				let result = parseInt(str.substring(digitPtrStart, digitPtrEnd + 1));
+				console.log(result);
+				factionNameUserData[index].amount = result;
+				factionNameUserData[index].date = timeConverter(data.response.items[0].date);
 			}
-			if (parseInt(str.substring(i, i + 1)) === NaN && digitPtrStart) break;
-		}
-		console.log(card, index);
-		console.log(str);
-		let result = parseInt(str.substring(digitPtrStart, digitPtrEnd + 1));
-		console.log(result);
-		factionNameUserData[index].amount = result;
-		factionNameUserData[index].date = timeConverter(data.response.items[0].date);
-		}
-		
-	});
+			
+		});
 	}
 }
 
