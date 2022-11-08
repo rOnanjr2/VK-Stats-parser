@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<script src="https://apis.google.com/js/api.js"></script>
+		<script>
+			// https://google.github.io/google-api-javascript-client/
+			// https://docs.google.com/spreadsheets/d/1J0yQJjQdYMS8wWd7icDBFqsVJsNBgqxsLCxQM_NGn5E/edit#gid=1679365240
+
+			let factionNameUserData = [];
+
+			async function getGoogleSheetData(query, functionToCall) {
+				const apiKey = "AIzaSyBO4Dr_pF5AWGbs_WloloNOnoqYvmFBVBQ";
+				const sheet = "1J0yQJjQdYMS8wWd7icDBFqsVJsNBgqxsLCxQM_NGn5E";
+				let result = await fetch(
+					`https://sheets.googleapis.com/v4/spreadsheets/${sheet}/values/${query}?key=${apiKey}`
+				)
+					.then(async (response) => {
+						return await response.json();
+					})
+					.then((returnedData) => functionToCall(returnedData))
+
+					.catch((err) => console.log("fetch failed ", err));
+			}
+
+			function doSomethingWithData(data) {
+				// console.dir(data.values);
+				// console.dir(data.values);
+				data.values.forEach((row) => {
+					if (row[1] === "TRUE") {
+						row[3] = "inactive";
+						row[2] = "inactive";
+					}
+					factionNameUserData.push({ name: row[0], id: row[2], card: row[3] });
+				});
+				console.log(factionNameUserData);//заменить на вызов функции работающей с этими данными
+			}
+			// тут имена и айди вместе
+			let rangeToGet = "Старки!A2:D100";
+			getGoogleSheetData(rangeToGet, doSomethingWithData);
+
+			// // тут отдельно имена и отдельно айди
+			// rangeToGet = "Старки*!A2:A1000"; //names
+			// getGoogleSheetData(rangeToGet, doSomethingWithData);
+			// rangeToGet = "Старки*!B2:B1000"; //ID
+			// getGoogleSheetData(rangeToGet, doSomethingWithData);
+
+			// resultOfGet.values[0] += "";
+
+			// console.log("resultOfGet", resultOfGet.values[0]);
+		</script>
+	</body>
+</html>
